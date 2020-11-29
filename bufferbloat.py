@@ -210,6 +210,11 @@ def bufferbloat():
     for i in range(len(times)):
 	times[i] = times[i].communicate()[0]
     times = map(float, times)
+    d_file = args.dir + "/download.txt"
+    f = open(d_file, 'w')
+    for i in range(len(times)):
+	f.write("{} \n".format(times[i]))
+    f.close()
     print "The Download Times are: "
     print times
     print "The number of total number of times are {}".format(len(times))
