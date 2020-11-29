@@ -202,10 +202,11 @@ def bufferbloat():
             break
         print "%.1fs left..." % (args.time - delta)
 
-    print("The Download Times are: ")
-    print(times)
-    print("The Average time is {}".format(avg(times)))
-    print("The Standard Deviation is {}".format(stdev(times)))
+    print "The Download Times are: "
+    print times
+    print "The number of total number of times are {}".format(len(times))
+    print "The Average time is {}".format(avg(times))
+    print "The Standard Deviation is {}".format(stdev(times))
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
