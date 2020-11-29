@@ -82,11 +82,11 @@ class BBTopo(Topo):
         switch = self.addSwitch('s0')
 
         # TODO: Add links with appropriate characteristics
-        for i in range(len(hosts))Z:
+        for i in range(len(hosts)):
         	if i%2 == 0:
-	    		self.addLink(host[i], switch, bw=args.bw_host, delay=args.delay, max_queue_size=args.maxq)
+	    		self.addLink(hosts[i], switch, bw=args.bw_host, delay=args.delay, max_queue_size=args.maxq)
 	    	else:
-	    		self.addLink(host[i], switch, bw=args.bw_net, delay=args.delay, max_queue_size=args.maxq)
+	    		self.addLink(hosts[i], switch, bw=args.bw_net, delay=args.delay, max_queue_size=args.maxq)
 
 
 # Simple wrappers around monitoring utilities.  You are welcome to
@@ -110,6 +110,7 @@ def start_qmon(iface, interval_sec=0.1, outfile="q.txt"):
     return monitor
 
 def start_iperf(net):
+    h1 = net.get('h1')
     h2 = net.get('h2')
     print "Starting iperf server..."
     # For those who are curious about the -w 16m parameter, it ensures
@@ -139,7 +140,12 @@ def start_ping(net):
     # until stdout is read. You can avoid this by runnning popen.communicate() or
     # redirecting stdout
     h1 = net.get('h1')
+    h2 = net.get('h2')
     popen = h1.popen("ping -i 0.1 {} > {}/ping.txt".format(h2.IP(), args.dir), shell=True)
+
+def download_page(client, ip):
+    time = client.popen("curl -o /dev/null -s -w %%{time_total} %s/http/index.html" % (ip))
+    return time
 
 def bufferbloat():
     if not os.path.exists(args.dir):
@@ -194,19 +200,23 @@ def bufferbloat():
     times = []
     while True:
         # do the measurement (say) 3 times.
-        sleep(2)
+	sleep(2)
         now = time()
-        times.append(h2.cmd("curl -o /dev/null -s -w %%{time_total} %s/http/index.html" % (h1.IP())))
-        delta = now - start_time
+        times.append(download_page(h2, h1.IP()))        
+	delta = now - start_time
         if delta > args.time:
             break
         print "%.1fs left..." % (args.time - delta)
-
+    for i in range(len(times)):
+	times[i] = times[i].communicate()[0]
+    times = map(float, times)
     print "The Download Times are: "
     print times
     print "The number of total number of times are {}".format(len(times))
-    print "The Average time is {}".format(avg(times))
-    print "The Standard Deviation is {}".format(stdev(times))
+    print "The Average time is "
+    print avg(times)
+    print "The Standard Deviation is: "
+    print stdev(times)
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
     # README and explain.
