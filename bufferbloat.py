@@ -144,6 +144,10 @@ def start_ping(net):
     popen = h1.popen("ping -i 0.1 {} > {}/ping.txt".format(h2.IP(), args.dir), shell=True)
 
 def download_page(client, ip):
+	"""
+	Function calls popen on given client to download page from given ip and returns object
+	that can be used to analyse time taken 
+	"""
     time = client.popen("curl -o /dev/null -s -w %%{time_total} %s/http/index.html" % (ip))
     return time
 
@@ -197,10 +201,9 @@ def bufferbloat():
     h1 = net.getNodeByName('h1')
     h2 = net.getNodeByName('h2')
     start_time = time()
-    times = []
+    times = [] #Array to store all the download times 
     while True:
-        # do the measurement (say) 3 times.
-	sleep(2)
+	sleep(2) #So that download happens every 2 seconds
         now = time()
         times.append(download_page(h2, h1.IP()))        
 	delta = now - start_time
@@ -208,11 +211,11 @@ def bufferbloat():
             break
         print "%.1fs left..." % (args.time - delta)
     for i in range(len(times)):
-	times[i] = times[i].communicate()[0]
+	times[i] = times[i].communicate()[0] #Extract the times taken from object
     times = map(float, times)
     d_file = args.dir + "/download.txt"
     f = open(d_file, 'w')
-    for i in range(len(times)):
+    for i in range(len(times)): #write download times to file
 	f.write("{} \n".format(times[i]))
     f.close()
     print "The Download Times are: "
